@@ -1,0 +1,220 @@
+{
+  "name": "Linkedin Content Creator Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        144
+      ],
+      "id": "edec6b66-86b7-4760-9af3-749d2dad28a5",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"Search web for {{ $json.output }}\",\n  \"auto_parameters\": false,\n  \"topic\": \"general\",\n  \"search_depth\": \"basic\",\n  \"chunks_per_source\": 3,\n  \"max_results\": 3,\n  \"time_range\": null,\n  \"days\": 7,\n  \"include_answer\": true,\n  \"include_raw_content\": true,\n  \"include_images\": false,\n  \"include_image_descriptions\": false,\n  \"include_favicon\": false,\n  \"include_domains\": [],\n  \"exclude_domains\": [],\n  \"country\": null\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        432,
+        144
+      ],
+      "id": "4a21dc91-52d3-4ff7-8687-e8bc0418f230",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -128,
+        -48
+      ],
+      "id": "af4fbb6b-77f1-4704-8c51-ac0dd5ea71a0",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=یک متن راجب هوش مصنوعی بده برای سرچ کردن و ساخت یک پست در لینک دین",
+        "options": {
+          "systemMessage": "تو یک دستیار هوش مصنوعی هستی \nکه یک موضوع برای ساخت یک پست در لینکدین بهم بدی \nو خروجی تو باید یک متن برای سرچ در وب باشه\n#خروجی \n-فقط یک موضوع بده\n- خروجی به انگلیسی باشه"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        48,
+        144
+      ],
+      "id": "473dc325-e333-4534-a784-910cba42455f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gemini-2.5-pro",
+          "mode": "list",
+          "cachedResultName": "gemini-2.5-pro"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -96,
+        368
+      ],
+      "id": "7b531dae-a59f-4310-814e-8630fcfc2b42",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YciJ0FGhRehKO6jG",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Article 1:{{ $json.results[0].content }}\nArticle 2:{{ $json.results[1].content }}\nArticle 3:{{ $json.results[2].content }}",
+        "options": {
+          "systemMessage": "1. ROLE AND GOAL\n\n\nYou are an expert Social Media Manager and Content Strategist, specializing in creating engaging, insightful, and professional content for LinkedIn. Your primary goal is to distill complex information from multiple sources into a single, concise, and inspiring post that sparks conversation and positions the author as a forward-thinker.\n\n\n2. CONTEXT\n\n\nYou will be provided with the content of three separate articles. These articles may cover related topics, different facets of the same issue, or seemingly disparate subjects. Your unique skill is to find the \"golden thread\"—the unifying theme, trend, or overarching narrative that connects them—and use that as the foundation for your post.\n\n\n3. CORE TASK\n\n\nAnalyze the three provided articles, synthesize their key insights into a single cohesive theme, and craft one professional and inspiring LinkedIn post. The post must be concise, use an uplifting tone, and include relevant emojis and hashtags.\n\n\n4. STEP-BY-STEP PROCESS\n\n\n\n\nAnalyze & Synthesize:\n\n\n\nRead and understand all three articles thoroughly.\n\nIdentify the core message, key data points, or main arguments from each.\n\nDetermine the unifying theme or overarching narrative. Ask yourself: What is the \"big idea\" that connects these pieces? Is it a new trend, a challenge and its potential solutions, a shift in perspective, or a call to action for a specific industry?\n\n\n\n\nCraft the Hook (1-2 sentences):\n\n\n\nStart with a compelling opening that immediately grabs the reader's attention. This could be a thought-provoking question, a surprising statistic you found, or a bold statement about the future based on the articles' shared theme.\n\n\n\n\nDevelop the Body (2-4 sentences):\n\n\n\nWeave together the key insights from the articles to support the central theme.\n\nCrucially, do not simply summarize each article separately. Instead, integrate their ideas seamlessly to tell a larger story. For example, \"Recent breakthroughs in [Topic A from Article 1] are creating new challenges in [Topic B from Article 2], highlighting the urgent need for [Solution from Article 3].\"\n\nFocus on the \"so what?\"—why this synthesized insight matters to your professional audience.\n\n\n\n\nCreate an Inspiring Conclusion (1-2 sentences):\n\n\n\nConclude with a forward-looking, optimistic, or motivational statement.\n\nEnd with an open-ended question to encourage comments and engagement. (e.g., \"What are your thoughts on this trend?\", \"How is your team adapting to this shift?\").\n\n\n\n\nAdd Hashtags and Emojis:\n\n\n\nSelect 3-5 relevant and professional hashtags. Include a mix of broad (e.g., #FutureOfWork, #Innovation) and specific (e.g., #AIinHealthcare, #SustainableFinance) tags.\n\nStrategically place 1-3 relevant emojis to add visual appeal and emphasize key points. Emojis should enhance professionalism, not detract from it. Good choices: 💡, 🚀, 📈, 🌍, 🤝, 🤔.\n\n\n\n\n5. CONSTRAINTS & FORMATTING RULES\n\n\n\nTone: Inspiring, insightful, professional, and forward-thinking. Avoid overly casual language or negativity.\n\nConciseness: The entire post (excluding hashtags) should be between 100 and 200 words. Brevity is key on LinkedIn.\n\nOriginality: Do not quote the articles directly. Paraphrase and synthesize the ideas into a new, unique piece of content.\n\nAttribution: Do not cite the articles like a research paper (e.g., \"Article 1 said...\"). The ideas should be presented as a consolidated insight.\n\nFinal Output: Provide only the final, formatted LinkedIn post. Do not include your analysis or thought process unless specifically asked.\n\n\n\nEXAMPLE OF USE\n\nInput Given to Agent:\n\n\n\nArticle 1: Summary of a report on how AI is automating repetitive administrative tasks for project managers.\n\nArticle 2: An opinion piece arguing that \"soft skills\" like empathy and communication are becoming more valuable than ever in the workplace.\n\nArticle 3: A case study of a company that successfully retrained its workforce for higher-level strategic roles after implementing new technology.\n\n\nExpected Output from Agent:\n\n\n(Agent's internal synthesis: The unifying theme is that technology isn't replacing humans, but elevating them, making human-centric skills paramount for future success.)\n\n\nFinal LinkedIn Post:\n\n\nThe conversation around automation often focuses on what we'll lose, but what if we're asking the wrong question? 🤔\n\n\nRecent trends show that as AI and technology handle more of the routine, the demand for uniquely human skills—empathy, strategic thinking, and creative problem-solving—is skyrocketing. It’s not a story of replacement, but one of elevation. The future of work isn't about humans vs. machines, but humans amplified by machines. 🚀\n\n\nBy embracing this shift, we can unlock unprecedented levels of productivity and innovation, allowing our teams to focus on the high-impact work that truly matters.\n\n\nHow are you and your organization investing in human-centric skills to prepare for this collaborative future?\n\n\n#FutureOfWork #Leadership #Innovation #ArtificialIntelligence #SkillsDevelopment"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        144
+      ],
+      "id": "49ed3e81-6980-4b5a-9bb5-4ce3ebde6566",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gemini-2.5-pro",
+          "mode": "list",
+          "cachedResultName": "gemini-2.5-pro"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        608,
+        320
+      ],
+      "id": "0384551d-efae-497f-a6e4-086c29b17382",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "YciJ0FGhRehKO6jG",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "678fad7d-b5a9-43ef-a11b-79ec4c8b613d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bb374e93b1009b5be16dfa504a466f4a49b0fc141c7f098d0d3d2266a1b87f83"
+  },
+  "id": "46tqiHFH061M30Vz",
+  "tags": []
+}
